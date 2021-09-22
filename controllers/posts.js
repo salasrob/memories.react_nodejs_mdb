@@ -1,14 +1,12 @@
 import pkg from 'mongoose';
-import Post from '../client/src/components/Posts/Post/Post.js';
-const { mongoose } = pkg;
 import PostMessage from "../models/postMessage.js";
 
 export const getPosts = async (req, res)=>
 {
     try
     {
-        const postMessage = await PostMessage.find()
-        console.log(postMessage);
+        console.log(req.body)
+        const postMessage = await PostMessage.find();
         res.status(200).json(postMessage);
     }
     catch(err)
@@ -35,25 +33,42 @@ export const createPost =  async (req, res)=>
 export const updatePost = async (req, res) => {
     const {id : _id} = req.params;
     const post = req.body;
+    try
+    {
+        if(!pkg.Types.ObjectId.isValid(_id)) return res.status(404).send('No post found with that ID');
+        const updatedPost = await PostMessage.findByIdAndUpdate(_id, {...post, _id}, {new:true})
+        res.json(updatedPost);
+    }
+    catch(err)
+    {
+        res.status(500).json(err.message)
+    }
 
-    if(!mongoose.Types.ObjectId.isValid(_id)) return res.status(404).send('No post found with that ID');
-
-   const updatedPost = await PostMessage.findByIdAndUpdate(_id, {...post, _id}, {new:true})
-   res.json(updatedPost);
 }
 
 export const deletePost = async (req, res) =>{
     const { id } = req.params;
-    if(!mongoose.Types.ObjectId.isValid(id)) return res.status(404).send('No post found with that ID');
+    if(!pkg.Types.ObjectId.isValid(id)) return res.status(404).send('No post found with that ID');
     await PostMessage.findByIdAndRemove(id);
     res.json({message:"Post deleted successfully."})
 }
 
 export const likePost = async (req, res) =>{
     const {id} = req.params;
-    if(!mongoose.Types.ObjectId.isValid(id)) return res.status(404).send('No post found with that ID');
+    try
+    {
+       
+        if(!pkg.Types.ObjectId.isValid(id)) return res.status(404).send('No post found with that ID');
 
-    const post = await PostMessage.findById(id);
-    const updatedPost = await PostMessage(findByIdAndUpdate(id,{likeCount:post.likeCount +1}))
-
+        const post = await PostMessage.findById(id);
+        console.log(post)
+        const updatedPost = await PostMessage.findByIdAndUpdate(id, { likeCount: post.likeCount + 1 }, { new: true });
+        console.log(updatedPost)
+        res.json(updatedPost);
+        
+    }
+    catch(err)
+    {
+        res.status(500).json(err.message)
+    }
 }
